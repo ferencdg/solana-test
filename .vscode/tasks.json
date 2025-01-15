@@ -1,0 +1,23 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cmdd",
+            "type": "shell",
+            "command": "anchor build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+        },
+        {
+            "label": "altd",
+            "type": "shell",
+            "command": "anchor test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+    ]
+}
