@@ -30,19 +30,12 @@ describe("solana", () => {
       program.programId
     );
 
-    const [uncheckedPDA, _] = web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("neee")],
-      program.programId
-    );
-
     // call the smart contract
     try {
-      const txHash = await program.methods
-        .initialize("asf")
+      console.log("## Creating PDA")
+      let txHash = await program.methods
+        .initialize()
         .accounts({
-          // nonPdaAcc: web3.Keypair.generate().publicKey,
-          //@ts-ignore
-          // uncheckedAcc: uncheckedPDA
           //@ts-ignore
           newAccount: messagePda,
           signer: generatedkp.publicKey,
@@ -50,17 +43,58 @@ describe("solana", () => {
         })
         .signers([generatedkp])
         .rpc();
-      // .view({
-      //   skipPreflight: true,
-      // })
+      await confirmTransaction(txHash);
+      let messagePdaAccountInfo = await connection.getAccountInfo(messagePda)
+      console.log("Account size: ", messagePdaAccountInfo.data.length)
+
+      console.log("## Increasing size")
+      txHash = await program.methods
+        .increaseSize(20 * 1024)
+        .accounts({
+          //@ts-ignore
+          newAccount: messagePda,
+          signer: generatedkp.publicKey,
+          systemProgram: web3.SystemProgram.programId,
+        })
+        .signers([generatedkp])
+        .rpc();
+      await confirmTransaction(txHash);
+      messagePdaAccountInfo = await connection.getAccountInfo(messagePda)
+      console.log("Account size: ", messagePdaAccountInfo.data.length)
+
+      console.log("## Set data")
+      const byteArray: number[] = Array.from({ length: 32 }, (_, i) => i + 1);
+      txHash = await program.methods
+        .setData(10282, byteArray)
+        .accounts({
+          //@ts-ignore
+          newAccount: messagePda,
+          signer: generatedkp.publicKey,
+          systemProgram: web3.SystemProgram.programId,
+        })
+        .signers([generatedkp])
+        .rpc();
 
       await confirmTransaction(txHash);
+      messagePdaAccountInfo = await connection.getAccountInfo(messagePda)
 
-      // Fetch and print the transaction log 
+      console.log("## Get data")
+      txHash = await program.methods
+        .getData(10282)
+        .accounts({
+          //@ts-ignore
+          newAccount: messagePda,
+          signer: generatedkp.publicKey,
+          systemProgram: web3.SystemProgram.programId,
+        })
+        .signers([generatedkp])
+        .rpc();
+
+      await confirmTransaction(txHash);
       printTxLog(txHash)
     }
     catch (e) {
-      console.log("ERROR HERE: ", e)
+      console.log("Initialize error: ", e)
     }
 
 
